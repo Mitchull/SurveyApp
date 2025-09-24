@@ -442,389 +442,536 @@
             <p style="color: #555555; font-size: 0.9rem; margin-top: 5px;">Yunex Traffic</p>
         </div>
 
-        <div class="distance-section">
-            <div class="distance-input-group">
-                <label for="distanceInput">Measured Distance:</label>
-                <input 
-                    type="number" 
-                    id="distanceInput" 
-                    class="distance-input" 
-                    placeholder="100" 
-                    min="0.1" 
-                    step="0.1"
-                    value="100"
-                >
-                <span class="unit-label">metres (m)</span>
-            </div>
-        </div>
-
-        <div class="timer-section">
-            <div class="timer-display" id="timerDisplay">00:00.00</div>
-            
-            <div class="controls">
-                <button class="btn btn-start" id="startBtn">
-                    ▶️ Start
-                </button>
-                <button class="btn btn-stop" id="stopBtn" disabled>
-                    ⏹️ Stop
-                </button>
-                <button class="btn btn-log" id="logBtn" disabled>
-                    💾 Log Time
-                </button>
-            </div>
-
-            <button class="btn btn-reset" id="resetBtn">
-                🔄 Reset
-            </button>
-        </div>
-
-        <div class="times-section">
-            <div class="times-header">
-                <h2>Recorded Times</h2>
-                <button class="btn btn-export" id="exportBtn" disabled>
-                    📥 Export CSV
-                </button>
-            </div>
-
-            <div class="times-list" id="timesList">
-                <div class="empty-state" id="emptyState">
-                    <div class="empty-icon">⏰</div>
-                    <p>No times recorded yet. Set your distance and start timing.</p>
-                </div>
-            </div>
-
-            <div class="remove-all-section" id="removeAllSection" style="display: none;">
-                <button class="btn btn-remove-all" id="removeAllBtn">
-                    🗑️ Remove All Times
-                </button>
-            </div>
-        </div>
-
-        <div class="summary-section" id="summarySection" style="display: none;">
-            <div class="summary-header">
-                <h2>Summary</h2>
-                <p style="color: #000000; margin-top: 5px;">Based on <span id="totalReadings">0</span> recorded measurements</p>
-            </div>
-
-            <div class="summary-stats">
-                <div class="stat-card">
-                    <div class="stat-label">Average Speed</div>
-                    <div class="stat-value" id="avgSpeed">0.0mph</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">15th Percentile</div>
-                    <div class="stat-value" id="p15Speed">0.0mph</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">85th Percentile</div>
-                    <div class="stat-value" id="p85Speed">0.0mph</div>
-                </div>
-            </div>
+<div class="distance-section">
+        <div class="distance-input-group">
+            <label for="distanceInput">Measured Distance:</label>
+            <input 
+                type="number" 
+                id="distanceInput" 
+                class="distance-input" 
+                placeholder="100" 
+                min="0.1" 
+                step="0.1"
+                value="100"
+            >
+            <span class="unit-label">metres (m)</span>
         </div>
     </div>
 
-    <script>
-        class SpeedTimingApp {
-            constructor() {
-                this.currentTime = 0;
-                this.isRunning = false;
-                this.loggedTimes = [];
-                this.startTime = null;
-                this.intervalId = null;
+    <div class="timer-section">
+        <div class="timer-display" id="timerDisplay">00:00.00</div>
+        
+        <div class="controls">
+            <button class="btn btn-start" id="startBtn">
+                ▶️ Start
+            </button>
+            <button class="btn btn-stop" id="stopBtn" disabled>
+                ⏹️ Stop
+            </button>
+            <button class="btn btn-log" id="logBtn" disabled>
+                💾 Log Time
+            </button>
+        </div>
 
-                this.initElements();
-                this.loadSavedData();
-                this.bindEvents();
+        <button class="btn btn-reset" id="resetBtn">
+            🔄 Reset
+        </button>
+    </div>
+
+    <div class="times-section">
+        <div class="times-header">
+            <h2>Recorded Times</h2>
+            <button class="btn btn-export" id="exportBtn" disabled>
+                📄 Export TXT
+            </button>
+        </div>
+
+        <div class="times-list" id="timesList">
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">⏰</div>
+                <p>No times recorded yet. Set your distance and start timing.</p>
+            </div>
+        </div>
+
+        <div class="remove-all-section" id="removeAllSection" style="display: none;">
+            <button class="btn btn-remove-all" id="removeAllBtn">
+                🗑️ Remove All Times
+            </button>
+        </div>
+    </div>
+
+    <div class="summary-section" id="summarySection" style="display: none;">
+        <div class="summary-header">
+            <h2>Summary</h2>
+            <p style="color: #000000; margin-top: 5px;">Based on <span id="totalReadings">0</span> recorded measurements</p>
+        </div>
+
+        <div class="summary-stats">
+            <div class="stat-card">
+                <div class="stat-label">Average Speed</div>
+                <div class="stat-value" id="avgSpeed">0.0mph</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">15th Percentile</div>
+                <div class="stat-value" id="p15Speed">0.0mph</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">85th Percentile</div>
+                <div class="stat-value" id="p85Speed">0.0mph</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    class SpeedTimingApp {
+        constructor() {
+            this.currentTime = 0;
+            this.isRunning = false;
+            this.loggedTimes = [];
+            this.startTime = null;
+            this.intervalId = null;
+
+            this.initElements();
+            this.loadSavedData();
+            this.bindEvents();
+            this.updateDisplay();
+        }
+
+        initElements() {
+            this.distanceInput = document.getElementById('distanceInput');
+            this.timerDisplay = document.getElementById('timerDisplay');
+            this.startBtn = document.getElementById('startBtn');
+            this.stopBtn = document.getElementById('stopBtn');
+            this.logBtn = document.getElementById('logBtn');
+            this.resetBtn = document.getElementById('resetBtn');
+            this.exportBtn = document.getElementById('exportBtn');
+            this.removeAllBtn = document.getElementById('removeAllBtn');
+            this.removeAllSection = document.getElementById('removeAllSection');
+            this.timesList = document.getElementById('timesList');
+            this.emptyState = document.getElementById('emptyState');
+            this.summarySection = document.getElementById('summarySection');
+            this.totalReadings = document.getElementById('totalReadings');
+            this.avgSpeed = document.getElementById('avgSpeed');
+            this.p15Speed = document.getElementById('p15Speed');
+            this.p85Speed = document.getElementById('p85Speed');
+        }
+
+        loadSavedData() {
+            const savedTimes = localStorage.getItem('speedTimingTimes');
+            const savedDistance = localStorage.getItem('speedTimingDistance');
+            
+            if (savedTimes) {
+                try {
+                    this.loggedTimes = JSON.parse(savedTimes);
+                    this.renderTimesList();
+                    this.updateSummary();
+                } catch (error) {
+                    console.error('Error loading saved times:', error);
+                }
+            }
+            
+            if (savedDistance) {
+                this.distanceInput.value = savedDistance;
+            }
+        }
+
+        saveData() {
+            localStorage.setItem('speedTimingTimes', JSON.stringify(this.loggedTimes));
+            localStorage.setItem('speedTimingDistance', this.distanceInput.value);
+        }
+
+        bindEvents() {
+            this.startBtn.addEventListener('click', () => this.start());
+            this.stopBtn.addEventListener('click', () => this.stop());
+            this.logBtn.addEventListener('click', () => this.logTime());
+            this.resetBtn.addEventListener('click', () => this.reset());
+            this.exportBtn.addEventListener('click', () => this.exportText());
+            this.removeAllBtn.addEventListener('click', () => this.removeAllTimes());
+            this.distanceInput.addEventListener('input', () => this.saveData());
+        }
+
+        formatTime(milliseconds) {
+            const totalSeconds = Math.floor(milliseconds / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            const ms = Math.floor((milliseconds % 1000) / 10);
+            
+            return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+        }
+
+        calculateSpeed(timeMs, distanceM) {
+            const timeSeconds = timeMs / 1000;
+            const mps = distanceM / timeSeconds;
+            const mph = mps * 2.23694; // Convert m/s to mph
+            
+            return {
+                mps: parseFloat(mps.toFixed(2)),
+                mph: parseFloat(mph.toFixed(2))
+            };
+        }
+
+        calculatePercentile(values, percentile) {
+            const sorted = values.slice().sort((a, b) => a - b);
+            const index = (percentile / 100) * (sorted.length - 1);
+            
+            if (index % 1 === 0) {
+                return sorted[index];
+            } else {
+                const lower = sorted[Math.floor(index)];
+                const upper = sorted[Math.ceil(index)];
+                return lower + (upper - lower) * (index % 1);
+            }
+        }
+
+        updateDisplay() {
+            this.timerDisplay.textContent = this.formatTime(this.currentTime);
+            this.startBtn.disabled = this.isRunning;
+            this.stopBtn.disabled = !this.isRunning;
+            this.logBtn.disabled = this.currentTime === 0 || !this.distanceInput.value || parseFloat(this.distanceInput.value) <= 0;
+            this.exportBtn.disabled = this.loggedTimes.length === 0;
+        }
+
+        start() {
+            if (!this.isRunning) {
+                this.startTime = Date.now() - this.currentTime;
+                this.isRunning = true;
+                
+                this.intervalId = setInterval(() => {
+                    this.currentTime = Date.now() - this.startTime;
+                    this.updateDisplay();
+                }, 10);
+                
                 this.updateDisplay();
             }
+        }
 
-            initElements() {
-                this.distanceInput = document.getElementById('distanceInput');
-                this.timerDisplay = document.getElementById('timerDisplay');
-                this.startBtn = document.getElementById('startBtn');
-                this.stopBtn = document.getElementById('stopBtn');
-                this.logBtn = document.getElementById('logBtn');
-                this.resetBtn = document.getElementById('resetBtn');
-                this.exportBtn = document.getElementById('exportBtn');
-                this.removeAllBtn = document.getElementById('removeAllBtn');
-                this.removeAllSection = document.getElementById('removeAllSection');
-                this.timesList = document.getElementById('timesList');
-                this.emptyState = document.getElementById('emptyState');
-                this.summarySection = document.getElementById('summarySection');
-                this.totalReadings = document.getElementById('totalReadings');
-                this.avgSpeed = document.getElementById('avgSpeed');
-                this.p15Speed = document.getElementById('p15Speed');
-                this.p85Speed = document.getElementById('p85Speed');
-            }
-
-            loadSavedData() {
-                const savedTimes = localStorage.getItem('speedTimingTimes');
-                const savedDistance = localStorage.getItem('speedTimingDistance');
-                
-                if (savedTimes) {
-                    try {
-                        this.loggedTimes = JSON.parse(savedTimes);
-                        this.renderTimesList();
-                        this.updateSummary();
-                    } catch (error) {
-                        console.error('Error loading saved times:', error);
-                    }
-                }
-                
-                if (savedDistance) {
-                    this.distanceInput.value = savedDistance;
-                }
-            }
-
-            saveData() {
-                localStorage.setItem('speedTimingTimes', JSON.stringify(this.loggedTimes));
-                localStorage.setItem('speedTimingDistance', this.distanceInput.value);
-            }
-
-            bindEvents() {
-                this.startBtn.addEventListener('click', () => this.start());
-                this.stopBtn.addEventListener('click', () => this.stop());
-                this.logBtn.addEventListener('click', () => this.logTime());
-                this.resetBtn.addEventListener('click', () => this.reset());
-                this.exportBtn.addEventListener('click', () => this.exportCSV());
-                this.removeAllBtn.addEventListener('click', () => this.removeAllTimes());
-                this.distanceInput.addEventListener('input', () => this.saveData());
-            }
-
-            formatTime(milliseconds) {
-                const totalSeconds = Math.floor(milliseconds / 1000);
-                const minutes = Math.floor(totalSeconds / 60);
-                const seconds = totalSeconds % 60;
-                const ms = Math.floor((milliseconds % 1000) / 10);
-                
-                return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
-            }
-
-            calculateSpeed(timeMs, distanceM) {
-                const timeSeconds = timeMs / 1000;
-                const mps = distanceM / timeSeconds;
-                const mph = mps * 2.23694; // Convert m/s to mph
-                
-                return {
-                    mps: parseFloat(mps.toFixed(2)),
-                    mph: parseFloat(mph.toFixed(2))
-                };
-            }
-
-            calculatePercentile(values, percentile) {
-                const sorted = values.slice().sort((a, b) => a - b);
-                const index = (percentile / 100) * (sorted.length - 1);
-                
-                if (index % 1 === 0) {
-                    return sorted[index];
-                } else {
-                    const lower = sorted[Math.floor(index)];
-                    const upper = sorted[Math.ceil(index)];
-                    return lower + (upper - lower) * (index % 1);
-                }
-            }
-
-            updateDisplay() {
-                this.timerDisplay.textContent = this.formatTime(this.currentTime);
-                this.startBtn.disabled = this.isRunning;
-                this.stopBtn.disabled = !this.isRunning;
-                this.logBtn.disabled = this.currentTime === 0 || !this.distanceInput.value || parseFloat(this.distanceInput.value) <= 0;
-                this.exportBtn.disabled = this.loggedTimes.length === 0;
-            }
-
-            start() {
-                if (!this.isRunning) {
-                    this.startTime = Date.now() - this.currentTime;
-                    this.isRunning = true;
-                    
-                    this.intervalId = setInterval(() => {
-                        this.currentTime = Date.now() - this.startTime;
-                        this.updateDisplay();
-                    }, 10);
-                    
-                    this.updateDisplay();
-                }
-            }
-
-            stop() {
-                if (this.isRunning) {
-                    this.isRunning = false;
-                    clearInterval(this.intervalId);
-                    this.updateDisplay();
-                }
-            }
-
-            reset() {
+        stop() {
+            if (this.isRunning) {
                 this.isRunning = false;
-                this.currentTime = 0;
                 clearInterval(this.intervalId);
                 this.updateDisplay();
             }
+        }
 
-            logTime() {
-                if (this.currentTime > 0 && this.distanceInput.value && parseFloat(this.distanceInput.value) > 0) {
-                    const distance = parseFloat(this.distanceInput.value);
-                    const speeds = this.calculateSpeed(this.currentTime, distance);
-                    
-                    const entry = {
-                        id: Date.now().toString(),
-                        duration: this.currentTime,
-                        distance: distance,
-                        timestamp: new Date(),
-                        formattedTime: this.formatTime(this.currentTime),
-                        mps: speeds.mps,
-                        mph: speeds.mph
-                    };
-                    
-                    this.loggedTimes.unshift(entry);
-                    this.saveData();
-                    this.renderTimesList();
-                    this.updateSummary();
-                    
-                    // Auto-reset timer after logging
-                    this.reset();
-                }
-            }
+        reset() {
+            this.isRunning = false;
+            this.currentTime = 0;
+            clearInterval(this.intervalId);
+            this.updateDisplay();
+        }
 
-            removeTime(id) {
-                this.loggedTimes = this.loggedTimes.filter(entry => entry.id !== id);
+        logTime() {
+            if (this.currentTime > 0 && this.distanceInput.value && parseFloat(this.distanceInput.value) > 0) {
+                const distance = parseFloat(this.distanceInput.value);
+                const speeds = this.calculateSpeed(this.currentTime, distance);
+                
+                const entry = {
+                    id: Date.now().toString(),
+                    duration: this.currentTime,
+                    distance: distance,
+                    timestamp: new Date(),
+                    formattedTime: this.formatTime(this.currentTime),
+                    mps: speeds.mps,
+                    mph: speeds.mph
+                };
+                
+                this.loggedTimes.unshift(entry);
                 this.saveData();
                 this.renderTimesList();
                 this.updateSummary();
-                this.updateDisplay();
-            }
-
-            removeAllTimes() {
-                if (this.loggedTimes.length > 0) {
-                    if (confirm(`Are you sure you want to remove all ${this.loggedTimes.length} recorded times? This action cannot be undone.`)) {
-                        this.loggedTimes = [];
-                        this.saveData();
-                        this.renderTimesList();
-                        this.updateSummary();
-                        this.updateDisplay();
-                    }
-                }
-            }
-
-            updateSummary() {
-                if (this.loggedTimes.length === 0) {
-                    this.summarySection.style.display = 'none';
-                    return;
-                }
-
-                this.summarySection.style.display = 'block';
                 
-                const speeds = this.loggedTimes.map(entry => entry.mph);
-                const avgMph = speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length;
-                const p15Mph = this.calculatePercentile(speeds, 15);
-                const p85Mph = this.calculatePercentile(speeds, 85);
-
-                this.totalReadings.textContent = this.loggedTimes.length;
-                this.avgSpeed.textContent = `${avgMph.toFixed(1)} mph`;
-                this.p15Speed.textContent = `${p15Mph.toFixed(1)} mph`;
-                this.p85Speed.textContent = `${p85Mph.toFixed(1)} mph`;
-            }
-
-            renderTimesList() {
-                if (this.loggedTimes.length === 0) {
-                    this.emptyState.style.display = 'block';
-                    this.timesList.innerHTML = '';
-                    this.timesList.appendChild(this.emptyState);
-                    this.removeAllSection.style.display = 'none';
-                } else {
-                    this.emptyState.style.display = 'none';
-                    this.removeAllSection.style.display = 'block';
-                    this.timesList.innerHTML = '';
-                    
-                    this.loggedTimes.forEach((entry, index) => {
-                        const entryElement = document.createElement('div');
-                        entryElement.className = 'time-entry';
-                        
-                        entryElement.innerHTML = `
-                            <div class="time-info">
-                                <div class="time-number">${index + 1}</div>
-                                <div class="time-details">
-                                    <div class="time-duration">${entry.formattedTime}</div>
-                                    <div class="time-speeds">
-                                        <span class="speed-value speed-mps">${entry.mps} m/s</span>
-                                        <span class="speed-value speed-mph">${entry.mph} mph</span>
-                                    </div>
-                                    <div class="time-timestamp">${entry.timestamp.toLocaleString()} • ${entry.distance}m</div>
-                                </div>
-                            </div>
-                            <button class="btn btn-remove" onclick="app.removeTime('${entry.id}')" title="Remove this measurement">
-                                ❌
-                            </button>
-                        `;
-                        
-                        this.timesList.appendChild(entryElement);
-                    });
-                }
-            }
-
-            exportCSV() {
-                if (this.loggedTimes.length === 0) return;
-                // Prompt user for approach name            
-                const approachName = prompt('Enter a name for this approach:', 'Approach 1');
-                if (approachName === null) return; // User cancelled
-                const finalApproachName = approachName.trim() || 'Approach 1'; // Use default if empty
-                // Calculate summary stats
-                const speeds = this.loggedTimes.map(entry => entry.mph);
-                const avgMph = speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length;
-                const p15Mph = this.calculatePercentile(speeds, 15);
-                const p85Mph = this.calculatePercentile(speeds, 85);
-
-                // Create CSV content
-                const csvContent = [
-                    // Header
-                    ['Cruise Speed Survey Results', finalSiteName],
-                    ['Approach Name:', finalApproachName],
-                    ['Generated:', new Date()],
-                    ['Distance Used:', `${this.distanceInput.value}m`],
-                    [''],
-                    
-                    // Summary Statistics
-                    ['SUMMARY STATISTICS'],
-                    ['Total Measurements:', this.loggedTimes.length],
-                    ['Average Speed (mph):', avgMph.toFixed(2)],
-                    ['15th Percentile Speed (mph):', p15Mph.toFixed(2)],
-                    ['85th Percentile Speed (mph):', p85Mph.toFixed(2)],
-                    [''],
-                    
-                    // Individual measurements header
-                    ['INDIVIDUAL MEASUREMENTS'],
-                    ['Entry #', 'Duration (Time)', 'Distance (m)', 'Speed (m/s)', 'Speed (mph)'],
-                    
-                    // Individual measurements data
-                    ...this.loggedTimes.map((entry, index) => [
-                        index + 1,
-                        entry.formattedTime,
-                        entry.distance,
-                        entry.mps,
-                        entry.mph.toLocaleString()
-                    ])
-                ].map(row => row.join(',')).join('\n');
-
-                // Create filename with approach name
-                const safeApproachName = finalApproachName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-                const dateStr = new Date().toISOString().split('T')[0];
-                const filename = `${safeApproachName}_survey_${dateStr}.csv`;
-                const blob = new Blob([csvContent], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = filename;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-                window.URL.revokeObjectURL(url);
+                // Auto-reset timer after logging
+                this.reset();
             }
         }
-        // Initialize the app when the page loads
-        let app;
-        document.addEventListener('DOMContentLoaded', () => {
-            app = new SpeedTimingApp();
-        });
-    </script>
+
+        removeTime(id) {
+            this.loggedTimes = this.loggedTimes.filter(entry => entry.id !== id);
+            this.saveData();
+            this.renderTimesList();
+            this.updateSummary();
+            this.updateDisplay();
+        }
+
+        removeAllTimes() {
+            if (this.loggedTimes.length > 0) {
+                if (confirm(`Are you sure you want to remove all ${this.loggedTimes.length} recorded times? This action cannot be undone.`)) {
+                    this.loggedTimes = [];
+                    this.saveData();
+                    this.renderTimesList();
+                    this.updateSummary();
+                    this.updateDisplay();
+                }
+            }
+        }
+
+        updateSummary() {
+            if (this.loggedTimes.length === 0) {
+                this.summarySection.style.display = 'none';
+                return;
+            }
+
+            this.summarySection.style.display = 'block';
+            
+            const speeds = this.loggedTimes.map(entry => entry.mph);
+            const avgMph = speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length;
+            const p15Mph = this.calculatePercentile(speeds, 15);
+            const p85Mph = this.calculatePercentile(speeds, 85);
+
+            this.totalReadings.textContent = this.loggedTimes.length;
+            this.avgSpeed.textContent = `${avgMph.toFixed(1)} mph`;
+            this.p15Speed.textContent = `${p15Mph.toFixed(1)} mph`;
+            this.p85Speed.textContent = `${p85Mph.toFixed(1)} mph`;
+        }
+
+        renderTimesList() {
+            if (this.loggedTimes.length === 0) {
+                this.emptyState.style.display = 'block';
+                this.timesList.innerHTML = '';
+                this.timesList.appendChild(this.emptyState);
+                this.removeAllSection.style.display = 'none';
+            } else {
+                this.emptyState.style.display = 'none';
+                this.removeAllSection.style.display = 'block';
+                this.timesList.innerHTML = '';
+                
+                this.loggedTimes.forEach((entry, index) => {
+                    const entryElement = document.createElement('div');
+                    entryElement.className = 'time-entry';
+                    
+                    entryElement.innerHTML = `
+                        <div class="time-info">
+                            <div class="time-number">${index + 1}</div>
+                            <div class="time-details">
+                                <div class="time-duration">${entry.formattedTime}</div>
+                                <div class="time-speeds">
+                                    <span class="speed-value speed-mps">${entry.mps} m/s</span>
+                                    <span class="speed-value speed-mph">${entry.mph} mph</span>
+                                </div>
+                                <div class="time-timestamp">${entry.timestamp.toLocaleString()} • ${entry.distance}m</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-remove" onclick="app.removeTime('${entry.id}')" title="Remove this measurement">
+                            ❌
+                        </button>
+                    `;
+                    
+                    this.timesList.appendChild(entryElement);
+                });
+            }
+        }
+
+        isIOS() {
+            return /iPad|iPhone|iPod/.test(navigator.userAgent) || 
+                   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+        }
+
+        exportText() {
+            if (this.loggedTimes.length === 0) return;
+            
+            // Prompt user for approach name            
+            const approachName = prompt('Enter a name for this approach:', 'Approach 1');
+            if (approachName === null) return; // User cancelled
+            const finalApproachName = approachName.trim() || 'Approach 1'; // Use default if empty
+            
+            // Calculate summary stats
+            const speeds = this.loggedTimes.map(entry => entry.mph);
+            const avgMph = speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length;
+            const p15Mph = this.calculatePercentile(speeds, 15);
+            const p85Mph = this.calculatePercentile(speeds, 85);
+
+            // Create text content with proper formatting
+            const textContent = [
+                '===============================================',
+                '         CRUISE SPEED SURVEY RESULTS',
+                '===============================================',
+                '',
+                `Approach Name: ${finalApproachName}`,
+                `Generated: ${new Date().toLocaleString()}`,
+                `Distance Used: ${this.distanceInput.value}m`,
+                '',
+                '===============================================',
+                '           SUMMARY STATISTICS',
+                '===============================================',
+                '',
+                `Total Measurements: ${this.loggedTimes.length}`,
+                `Average Speed: ${avgMph.toFixed(2)} mph`,
+                `15th Percentile Speed: ${p15Mph.toFixed(2)} mph`,
+                `85th Percentile Speed: ${p85Mph.toFixed(2)} mph`,
+                '',
+                '===============================================',
+                '         INDIVIDUAL MEASUREMENTS',
+                '===============================================',
+                '',
+                'Entry #  | Duration   | Distance | Speed (m/s) | Speed (mph)',
+                '---------|------------|----------|-------------|------------',
+                ...this.loggedTimes.map((entry, index) => {
+                    const entryNum = (index + 1).toString().padEnd(8);
+                    const duration = entry.formattedTime.padEnd(10);
+                    const distance = (entry.distance + 'm').padEnd(8);
+                    const speedMps = entry.mps.toString().padEnd(11);
+                    const speedMph = entry.mph.toString();
+                    return `${entryNum} | ${duration} | ${distance} | ${speedMps} | ${speedMph}`;
+                }),
+                '',
+                '===============================================',
+                'Generated by Yunex Traffic Speed Survey App',
+                '==============================================='
+            ].join('\n');
+
+            // Create filename with approach name
+            const safeApproachName = finalApproachName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+            const dateStr = new Date().toISOString().split('T')[0];
+            const filename = `${safeApproachName}_survey_${dateStr}.txt`;
+            
+            // iOS-specific handling
+            if (this.isIOS()) {
+                // For iOS, open content in a new window that can be copied or shared
+                const newWindow = window.open('', '_blank');
+                if (newWindow) {
+                    newWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                        <head>
+                            <meta charset="UTF-8">
+                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                            <title>${filename}</title>
+                            <style>
+                                body {
+                                    font-family: monospace;
+                                    margin: 20px;
+                                    background: #f5f5f5;
+                                }
+                                .container {
+                                    background: white;
+                                    padding: 20px;
+                                    border-radius: 8px;
+                                    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                                }
+                                .export-text {
+                                    white-space: pre-wrap;
+                                    font-size: 12px;
+                                    line-height: 1.4;
+                                    border: 1px solid #ddd;
+                                    padding: 15px;
+                                    border-radius: 4px;
+                                    background: #f9f9f9;
+                                    max-width: 100%;
+                                    overflow-x: auto;
+                                }
+                                .instructions {
+                                    margin-bottom: 20px;
+                                    padding: 15px;
+                                    background: #e3f2fd;
+                                    border-radius: 4px;
+                                    border-left: 4px solid #2196f3;
+                                }
+                                .copy-btn {
+                                    background: #2196f3;
+                                    color: white;
+                                    border: none;
+                                    padding: 12px 24px;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-size: 16px;
+                                    margin-bottom: 15px;
+                                }
+                                .copy-btn:hover {
+                                    background: #1976d2;
+                                }
+                                .share-btn {
+                                    background: #4caf50;
+                                    color: white;
+                                    border: none;
+                                    padding: 12px 24px;
+                                    border-radius: 4px;
+                                    cursor: pointer;
+                                    font-size: 16px;
+                                    margin-left: 10px;
+                                }
+                                .share-btn:hover {
+                                    background: #45a049;
+                                }
+                                @media (max-width: 768px) {
+                                    .copy-btn, .share-btn {
+                                        display: block;
+                                        width: 100%;
+                                        margin: 10px 0;
+                                    }
+                                }
+                            </style>
+                    </head>
+                    <body>
+                        <div class="container">
+                            <div class="instructions">
+                                <strong>Export Complete!</strong><br>
+                                Use the buttons below to copy the text or share it via iOS Share menu. You can then paste it into Files app, email, or other apps to save as a file.
+                            </div>
+                            <button class="copy-btn" onclick="copyToClipboard()">📋 Copy All Text</button>
+                            ${navigator.share ? '<button class="share-btn" onclick="shareText()">📤 Share via iOS Share</button>' : ''}
+                            <div class="export-text" id="exportContent">${textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+                        </div>
+                        <script>
+                            function copyToClipboard() {
+                                const text = document.getElementById('exportContent').textContent;
+                                navigator.clipboard.writeText(text).then(() => {
+                                    alert('Text copied to clipboard! You can now paste it into any app.');
+                                }).catch(() => {
+                                    // Fallback selection method
+                                    const range = document.createRange();
+                                    const selection = window.getSelection();
+                                    range.selectNodeContents(document.getElementById('exportContent'));
+                                    selection.removeAllRanges();
+                                    selection.addRange(range);
+                                    try {
+                                        document.execCommand('copy');
+                                        alert('Text selected! Use Ctrl+C or Command+C to copy.');
+                                    } catch(err) {
+                                        alert('Please manually select and copy the text below.');
+                                    }
+                                });
+                            }
+                            
+                            ${navigator.share ? `
+                            function shareText() {
+                                const text = document.getElementById('exportContent').textContent;
+                                if (navigator.share) {
+                                    navigator.share({
+                                        title: '${filename}',
+                                        text: text
+                                    }).catch(err => console.log('Error sharing:', err));
+                                }
+                            }
+                            ` : ''}
+                        <\/script>
+                    </body>
+                    </html>
+                `);
+                newWindow.document.close();
+            } else {
+                alert('Please allow pop-ups to export data on iOS devices.');
+            }
+        } else {
+            // Standard download for non-iOS devices
+            const blob = new Blob([textContent], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            window.URL.revokeObjectURL(url);
+        }
+    }
+}
+
+// Initialize the app when the page loads
+let app;
+document.addEventListener('DOMContentLoaded', () => {
+    app = new SpeedTimingApp();
+});
+</script>
 </body>
 </html>
