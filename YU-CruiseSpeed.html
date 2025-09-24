@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yunex Traffic Speed Survey App</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Jeko Regular', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(to top left, #688aba, transparent 75%),
+                        linear-gradient(to top right, #ffffff, transparent 75%),
+                        linear-gradient(to bottom left, #deecff, transparent 75%),
+                        linear-gradient(to bottom right, #affad7, transparent 75%);
+            background-blend-mode: screen;
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #000000, #000000);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 10px;
+        }
+
+        .distance-section {
+            background: rgba(202, 210, 221, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 30px;
+            border: 1px solid #475569;
+        }
+
+        .distance-input-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .distance-input-group label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #000000;
+        }
+
+        .distance-input {
+            padding: 12px 16px;
+            border: 2px solid #475569;
+            border-radius: 10px;
+            background: rgba(202, 210, 221, 0.8);
+            color: #000000;
+            font-size: 1.1rem;
+            width: 150px;
+            text-align: center;
+        }
+
+        .distance-input:focus {
+            outline: none;
+            border-color: #60a5fa;
+        }
+
+        .unit-label {
+            font-size: 1.1rem;
+            color: #000000;
+        }
+
+        .timer-section {
+            background: rgba(202, 210, 221, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            border: 1px solid #000000;
+            text-align: center;
+        }
+
+        .timer-display {
+            font-size: 4rem;
+            font-family: 'Jeko Regular', monospace;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 30px;
+            letter-spacing: 2px;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            transform: scale(1.05);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-start {
+            background: #22c55e;
+            color: white;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            background: #16a34a;
+        }
+
+        .btn-stop {
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-stop:hover:not(:disabled) {
+            background: #dc2626;
+        }
+
+        .btn-log {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-log:hover:not(:disabled) {
+            background: #2563eb;
+        }
+
+        .btn-reset {
+            background: #64748b;
+            color: white;
+        }
+
+        .btn-reset:hover {
+            background: #475569;
+        }
+
+        .times-section {
+            background: rgba(202, 210, 221, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #000000;
+            margin-bottom: 30px;
+        }
+
+        .times-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .times-header h2 {
+            font-size: 1.5rem;
+            color: #000000;
+        }
+
+        .btn-export {
+            background: #8b5cf6;
+            color: white;
+            padding: 8px 16px;
+            font-size: 0.9rem;
+        }
+
+        .btn-export:hover:not(:disabled) {
+            background: #7c3aed;
+        }
+
+        .times-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .time-entry {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: rgba(202, 210, 221, 0.8);
+            border-radius: 10px;
+            border: 1px solid #000000;
+            margin-bottom: 10px;
+            transition: border-color 0.2s;
+        }
+
+        .time-entry:hover {
+            border-color: #000000;
+        }
+
+        .time-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .time-number {
+            width: 30px;
+            height: 30px;
+            background: #1e2ed9;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .time-details {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .time-duration {
+            font-family: 'Jeko Regular', monospace;
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #1e2ed9;
+        }
+
+        .time-speeds {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .speed-value {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .speed-mps {
+            color: #05a841;
+        }
+
+        .speed-mph {
+            color: #f59e0b;
+        }
+
+        .time-timestamp {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .btn-remove {
+            background: #ef4444;
+            color: white;
+            padding: 8px;
+            border-radius: 8px;
+            width: 35px;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-remove:hover {
+            background: #dc2626;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px;
+            color: #94a3b8;
+        }
+
+        .empty-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 15px;
+            opacity: 0.5;
+        }
+
+        .remove-all-section {
+            margin-top: 20px;
+            text-align: center;
+            padding-top: 20px;
+            border-top: 1px solid #475569;
+        }
+
+        .btn-remove-all {
+            background: #dc2626;
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-weight: 600;
+        }
+
+        .btn-remove-all:hover:not(:disabled) {
+            background: #b91c1c;
+            transform: scale(1.02);
+        }
+
+        .btn-remove-all:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .summary-section {
+            background: rgba(202, 210, 221, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid #000000;
+        }
+
+        .summary-header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        .summary-header h2 {
+            font-size: 1.8rem;
+            color: #000000;
+            margin-bottom: 10px;
+        }
+
+        .summary-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: rgba(183, 187, 192, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 1px solid #000000;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #000000;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #1e2ed9;
+            font-family: 'Jeko Regular', monospace;
+        }
+
+        @media (max-width: 768px) {
+            .timer-display {
+                font-size: 2.5rem;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn {
+                min-width: 140px;
+                justify-content: center;
+            }
+
+            .times-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+
+            .time-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .distance-input-group {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .summary-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .time-speeds {
+                flex-direction: column;
+                gap: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Informal Cruise Speed Tool</h1>
+            <p style="color: #555555; font-size: 0.9rem; margin-top: 5px;">Yunex Traffic</p>
+        </div>
+
+        <div class="distance-section">
+            <div class="distance-input-group">
+                <label for="distanceInput">Measured Distance:</label>
+                <input 
+                    type="number" 
+                    id="distanceInput" 
+                    class="distance-input" 
+                    placeholder="100" 
+                    min="0.1" 
+                    step="0.1"
+                    value="100"
+                >
+                <span class="unit-label">metres (m)</span>
+            </div>
+        </div>
+
+        <div class="timer-section">
+            <div class="timer-display" id="timerDisplay">00:00.00</div>
+            
+            <div class="controls">
+                <button class="btn btn-start" id="startBtn">
+                    ▶️ Start
+                </button>
+                <button class="btn btn-stop" id="stopBtn" disabled>
+                    ⏹️ Stop
+                </button>
+                <button class="btn btn-log" id="logBtn" disabled>
+                    💾 Log Time
+                </button>
+            </div>
+
+            <button class="btn btn-reset" id="resetBtn">
+                🔄 Reset
+            </button>
+        </div>
+
+        <div class="times-section">
+            <div class="times-header">
+                <h2>Recorded Times</h2>
+                <button class="btn btn-export" id="exportBtn" disabled>
+                    📥 Export CSV
+                </button>
+            </div>
+
+            <div class="times-list" id="timesList">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">⏰</div>
+                    <p>No times recorded yet. Set your distance and start timing.</p>
+                </div>
+            </div>
+
+            <div class="remove-all-section" id="removeAllSection" style="display: none;">
+                <button class="btn btn-remove-all" id="removeAllBtn">
+                    🗑️ Remove All Times
+                </button>
+            </div>
+        </div>
+
+        <div class="summary-section" id="summarySection" style="display: none;">
+            <div class="summary-header">
+                <h2>Summary</h2>
+                <p style="color: #000000; margin-top: 5px;">Based on <span id="totalReadings">0</span> recorded measurements</p>
+            </div>
+
+            <div class="summary-stats">
+                <div class="stat-card">
+                    <div class="stat-label">Average Speed</div>
+                    <div class="stat-value" id="avgSpeed">0.0mph</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">15th Percentile</div>
+                    <div class="stat-value" id="p15Speed">0.0mph</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">85th Percentile</div>
+                    <div class="stat-value" id="p85Speed">0.0mph</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class SpeedTimingApp {
+            constructor() {
+                this.currentTime = 0;
+                this.isRunning = false;
+                this.loggedTimes = [];
+                this.startTime = null;
+                this.intervalId = null;
+
+                this.initElements();
+                this.loadSavedData();
+                this.bindEvents();
+                this.updateDisplay();
+            }
+
+            initElements() {
+                this.distanceInput = document.getElementById('distanceInput');
+                this.timerDisplay = document.getElementById('timerDisplay');
+                this.startBtn = document.getElementById('startBtn');
+                this.stopBtn = document.getElementById('stopBtn');
+                this.logBtn = document.getElementById('logBtn');
+                this.resetBtn = document.getElementById('resetBtn');
+                this.exportBtn = document.getElementById('exportBtn');
+                this.removeAllBtn = document.getElementById('removeAllBtn');
+                this.removeAllSection = document.getElementById('removeAllSection');
+                this.timesList = document.getElementById('timesList');
+                this.emptyState = document.getElementById('emptyState');
+                this.summarySection = document.getElementById('summarySection');
+                this.totalReadings = document.getElementById('totalReadings');
+                this.avgSpeed = document.getElementById('avgSpeed');
+                this.p15Speed = document.getElementById('p15Speed');
+                this.p85Speed = document.getElementById('p85Speed');
+            }
+
+            loadSavedData() {
+                const savedTimes = localStorage.getItem('speedTimingTimes');
+                const savedDistance = localStorage.getItem('speedTimingDistance');
+                
+                if (savedTimes) {
+                    try {
+                        this.loggedTimes = JSON.parse(savedTimes);
+                        this.renderTimesList();
+                        this.updateSummary();
+                    } catch (error) {
+                        console.error('Error loading saved times:', error);
+                    }
+                }
+                
+                if (savedDistance) {
+                    this.distanceInput.value = savedDistance;
+                }
+            }
+
+            saveData() {
+                localStorage.setItem('speedTimingTimes', JSON.stringify(this.loggedTimes));
+                localStorage.setItem('speedTimingDistance', this.distanceInput.value);
+            }
+
+            bindEvents() {
+                this.startBtn.addEventListener('click', () => this.start());
+                this.stopBtn.addEventListener('click', () => this.stop());
+                this.logBtn.addEventListener('click', () => this.logTime());
+                this.resetBtn.addEventListener('click', () => this.reset());
+                this.exportBtn.addEventListener('click', () => this.exportCSV());
+                this.removeAllBtn.addEventListener('click', () => this.removeAllTimes());
+                this.distanceInput.addEventListener('input', () => this.saveData());
+            }
+
+            formatTime(milliseconds) {
+                const totalSeconds = Math.floor(milliseconds / 1000);
+                const minutes = Math.floor(totalSeconds / 60);
+                const seconds = totalSeconds % 60;
+                const ms = Math.floor((milliseconds % 1000) / 10);
+                
+                return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}.${ms.toString().padStart(2, '0')}`;
+            }
+
+            calculateSpeed(timeMs, distanceM) {
+                const timeSeconds = timeMs / 1000;
+                const mps = distanceM / timeSeconds;
+                const mph = mps * 2.23694; // Convert m/s to mph
+                
+                return {
+                    mps: parseFloat(mps.toFixed(2)),
+                    mph: parseFloat(mph.toFixed(2))
+                };
+            }
+
+            calculatePercentile(values, percentile) {
+                const sorted = values.slice().sort((a, b) => a - b);
+                const index = (percentile / 100) * (sorted.length - 1);
+                
+                if (index % 1 === 0) {
+                    return sorted[index];
+                } else {
+                    const lower = sorted[Math.floor(index)];
+                    const upper = sorted[Math.ceil(index)];
+                    return lower + (upper - lower) * (index % 1);
+                }
+            }
+
+            updateDisplay() {
+                this.timerDisplay.textContent = this.formatTime(this.currentTime);
+                this.startBtn.disabled = this.isRunning;
+                this.stopBtn.disabled = !this.isRunning;
+                this.logBtn.disabled = this.currentTime === 0 || !this.distanceInput.value || parseFloat(this.distanceInput.value) <= 0;
+                this.exportBtn.disabled = this.loggedTimes.length === 0;
+            }
+
+            start() {
+                if (!this.isRunning) {
+                    this.startTime = Date.now() - this.currentTime;
+                    this.isRunning = true;
+                    
+                    this.intervalId = setInterval(() => {
+                        this.currentTime = Date.now() - this.startTime;
+                        this.updateDisplay();
+                    }, 10);
+                    
+                    this.updateDisplay();
+                }
+            }
+
+            stop() {
+                if (this.isRunning) {
+                    this.isRunning = false;
+                    clearInterval(this.intervalId);
+                    this.updateDisplay();
+                }
+            }
+
+            reset() {
+                this.isRunning = false;
+                this.currentTime = 0;
+                clearInterval(this.intervalId);
+                this.updateDisplay();
+            }
+
+            logTime() {
+                if (this.currentTime > 0 && this.distanceInput.value && parseFloat(this.distanceInput.value) > 0) {
+                    const distance = parseFloat(this.distanceInput.value);
+                    const speeds = this.calculateSpeed(this.currentTime, distance);
+                    
+                    const entry = {
+                        id: Date.now().toString(),
+                        duration: this.currentTime,
+                        distance: distance,
+                        timestamp: new Date(),
+                        formattedTime: this.formatTime(this.currentTime),
+                        mps: speeds.mps,
+                        mph: speeds.mph
+                    };
+                    
+                    this.loggedTimes.unshift(entry);
+                    this.saveData();
+                    this.renderTimesList();
+                    this.updateSummary();
+                    
+                    // Auto-reset timer after logging
+                    this.reset();
+                }
+            }
+
+            removeTime(id) {
+                this.loggedTimes = this.loggedTimes.filter(entry => entry.id !== id);
+                this.saveData();
+                this.renderTimesList();
+                this.updateSummary();
+                this.updateDisplay();
+            }
+
+            removeAllTimes() {
+                if (this.loggedTimes.length > 0) {
+                    if (confirm(`Are you sure you want to remove all ${this.loggedTimes.length} recorded times? This action cannot be undone.`)) {
+                        this.loggedTimes = [];
+                        this.saveData();
+                        this.renderTimesList();
+                        this.updateSummary();
+                        this.updateDisplay();
+                    }
+                }
+            }
+
+            updateSummary() {
+                if (this.loggedTimes.length === 0) {
+                    this.summarySection.style.display = 'none';
+                    return;
+                }
+
+                this.summarySection.style.display = 'block';
+                
+                const speeds = this.loggedTimes.map(entry => entry.mph);
+                const avgMph = speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length;
+                const p15Mph = this.calculatePercentile(speeds, 15);
+                const p85Mph = this.calculatePercentile(speeds, 85);
+
+                this.totalReadings.textContent = this.loggedTimes.length;
+                this.avgSpeed.textContent = `${avgMph.toFixed(1)} mph`;
+                this.p15Speed.textContent = `${p15Mph.toFixed(1)} mph`;
+                this.p85Speed.textContent = `${p85Mph.toFixed(1)} mph`;
+            }
+
+            renderTimesList() {
+                if (this.loggedTimes.length === 0) {
+                    this.emptyState.style.display = 'block';
+                    this.timesList.innerHTML = '';
+                    this.timesList.appendChild(this.emptyState);
+                    this.removeAllSection.style.display = 'none';
+                } else {
+                    this.emptyState.style.display = 'none';
+                    this.removeAllSection.style.display = 'block';
+                    this.timesList.innerHTML = '';
+                    
+                    this.loggedTimes.forEach((entry, index) => {
+                        const entryElement = document.createElement('div');
+                        entryElement.className = 'time-entry';
+                        
+                        entryElement.innerHTML = `
+                            <div class="time-info">
+                                <div class="time-number">${index + 1}</div>
+                                <div class="time-details">
+                                    <div class="time-duration">${entry.formattedTime}</div>
+                                    <div class="time-speeds">
+                                        <span class="speed-value speed-mps">${entry.mps} m/s</span>
+                                        <span class="speed-value speed-mph">${entry.mph} mph</span>
+                                    </div>
+                                    <div class="time-timestamp">${entry.timestamp.toLocaleString()} • ${entry.distance}m</div>
+                                </div>
+                            </div>
+                            <button class="btn btn-remove" onclick="app.removeTime('${entry.id}')" title="Remove this measurement">
+                                ❌
+                            </button>
+                        `;
+                        
+                        this.timesList.appendChild(entryElement);
+                    });
+                }
+            }
+
+            exportCSV() {
+                if (this.loggedTimes.length === 0) return;
+                // Prompt user for approach name            
+                const approachName = prompt('Enter a name for this approach:', 'Approach 1');
+                if (approachName === null) return; // User cancelled
+                const finalApproachName = approachName.trim() || 'Approach 1'; // Use default if empty
+                // Calculate summary stats
+                const speeds = this.loggedTimes.map(entry => entry.mph);
+                const avgMph = speeds.reduce((sum, speed) => sum + speed, 0) / speeds.length;
+                const p15Mph = this.calculatePercentile(speeds, 15);
+                const p85Mph = this.calculatePercentile(speeds, 85);
+
+                // Create CSV content
+                const csvContent = [
+                    // Header
+                    ['Cruise Speed Survey Results', finalSiteName],
+                    ['Approach Name:', finalApproachName],
+                    ['Generated:', new Date()],
+                    ['Distance Used:', `${this.distanceInput.value}m`],
+                    [''],
+                    
+                    // Summary Statistics
+                    ['SUMMARY STATISTICS'],
+                    ['Total Measurements:', this.loggedTimes.length],
+                    ['Average Speed (mph):', avgMph.toFixed(2)],
+                    ['15th Percentile Speed (mph):', p15Mph.toFixed(2)],
+                    ['85th Percentile Speed (mph):', p85Mph.toFixed(2)],
+                    [''],
+                    
+                    // Individual measurements header
+                    ['INDIVIDUAL MEASUREMENTS'],
+                    ['Entry #', 'Duration (Time)', 'Distance (m)', 'Speed (m/s)', 'Speed (mph)'],
+                    
+                    // Individual measurements data
+                    ...this.loggedTimes.map((entry, index) => [
+                        index + 1,
+                        entry.formattedTime,
+                        entry.distance,
+                        entry.mps,
+                        entry.mph.toLocaleString()
+                    ])
+                ].map(row => row.join(',')).join('\n');
+
+                // Create filename with approach name
+                const safeApproachName = finalApproachName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+                const dateStr = new Date().toISOString().split('T')[0];
+                const filename = `${safeApproachName}_survey_${dateStr}.csv`;
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                window.URL.revokeObjectURL(url);
+            }
+        }
+        // Initialize the app when the page loads
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new SpeedTimingApp();
+        });
+    </script>
+</body>
+</html>
