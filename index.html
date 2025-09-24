@@ -909,7 +909,7 @@
                                 Use the buttons below to copy the text or share it via iOS Share menu. You can then paste it into Files app, email, or other apps to save as a file.
                             </div>
                             <button class="copy-btn" onclick="copyToClipboard()">📋 Copy All Text</button>
-                            ${navigator.share ? '<button class="share-btn" onclick="shareText()">📤 Share via iOS Share</button>' : ''}
+                            ${navigator.share ? '<button class="share-btn" onclick="shareText()">📤 Share / Save</button>' : ''}
                             <div class="export-text" id="exportContent">${textContent.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
                         </div>
                         <script>
@@ -975,3 +975,4 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 </body>
 </html>
+
